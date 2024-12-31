@@ -1,3 +1,42 @@
 [submodule "traefik_es"]
 	path = traefik_es
 	url = https://github.com/linux-fertxo/traefik_es
+[submodule "socket-proxy_es"]
+	path = socket-proxy_es
+	url = https://github.com/linux-fertxo/socket-proxy_es
+[submodule "proxmox-bs_es"]
+	path = proxmox-bs_es
+	url = https://github.com/linux-fertxo/proxmox-bs_es
+[submodule "opndash_es"]
+	path = opndash_es
+	url = https://github.com/linux-fertxo/opndash_es
+[submodule "dashy_es"]
+	path = dashy_es
+	url = https://github.com/linux-fertxo/dashy_es
+[submodule "nextcloud_es"]
+	path = nextcloud_es
+	url = https://github.com/linux-fertxo/nextcloud_es
+[submodule "minecraft_es"]
+	path = minecraft_es
+	url = https://github.com/linux-fertxo/minecraft_es
+[submodule "mariadb_es"]
+	path = mariadb_es
+	url = https://github.com/linux-fertxo/mariadb_es
+[submodule "jdownloader_es"]
+	path = jdownloader_es
+	url = https://github.com/linux-fertxo/jdownloader_es
+[submodule "crowdsec_es"]
+	path = crowdsec_es
+	url = https://github.com/linux-fertxo/crowdsec_es
+[submodule "code-server_es"]
+	path = code-server_es
+	url = https://github.com/linux-fertxo/code-server_es
+[submodule "cf-ddns_es"]
+	path = cf-ddns_es
+	url = https://github.com/linux-fertxo/cf-ddns_es
+[submodule "authelia_es"]
+	path = authelia_es
+	url = https://github.com/linux-fertxo/authelia_es
+[submodule "atuin_es"]
+	path = atuin_es
+	url = https://github.com/linux-fertxo/atuin_es
