@@ -119,11 +119,11 @@ docker run authelia/authelia:latest authelia crypto hash generate argon2 --passw
 
 Sustituir PASSWORD por nuestra contraseña y copiar el resultado desde el primer símbolo `$` hasta el final dentro del bloque `password:`.
 
-> **Truco**: Si escribimos un espacio antes de todo el comando le estaremos diciendo a la Shell que no almacene la línea en el historial.*** 😎
+> **Truco**: Si escribimos un espacio antes de todo el comando le estaremos diciendo a la Shell que no almacene la línea en el historial. 😎
 
 ### *Otras observaciones*
 
-Dentro de la carpeta `redis/` se generaran archivos que en realidad no tenemos que hacer nada con ellos. Se puede generar un volumen de docker en lugar de un bind mount.
+Dentro de la carpeta `redis/` se generarán archivos que en realidad no tenemos que hacer nada con ellos. Se puede generar un volumen de docker en lugar de un bind mount.
 
 El servicio se apoya en Traefik, aunque es adaptable a otros proxies inversos.
 
