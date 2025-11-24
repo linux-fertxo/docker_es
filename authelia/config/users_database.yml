@@ -1,0 +1,20 @@
+---
+###############################################################
+#                         Users Database                      #
+###############################################################
+
+# Este archivo se utiliza por no tiener un LDAP configurado.
+
+# Lista de usuarios
+users:
+  pepito:
+    displayname: "Pepito Pérez"
+    # Para generar el password: docker run authelia/authelia:latest authelia crypto hash generate argon2 --password PASSWORD
+    password: ""
+    email: pepito@ejemplo.com
+    groups:
+      - admins
+      - dev
+  # usuario2:
+    # etc...  
+...

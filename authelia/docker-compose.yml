@@ -1,0 +1,65 @@
+#============================================================================= REDES
+networks:
+  proxy:
+    name: proxy
+    external: true                                                            # Creada previamente
+
+#============================================================================= SECRETOS
+secrets:
+  JWT_SECRET:
+    file: '$DOCKERDIR/authelia/config/secrets/jwt_secret'
+  SESSION_SECRET:
+    file: '$DOCKERDIR/authelia/config/secrets/session_secret'
+  STORAGE_ENCRYPTION_KEY:
+    file: '$DOCKERDIR/authelia/config/secrets/storage_encryption_key'
+  AUTHELIA_SESSION_REDIS_PASSWORD:
+    file: '$DOCKERDIR/authelia/config/secrets/authelia_session_redis_password'
+
+#============================================================================= SERVICIOS
+services:
+
+  #--------------------------------------------------------------------------- Authelia
+  authelia:
+    image: authelia/authelia:latest
+    container_name: authelia
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+    networks: 
+      - proxy
+    expose:  
+      - 9091
+    user: $PUID:$PGID                                                         # ID del usuario que ejecuta el contenedor en forma numérica. Sustituir en el archivo .env
+    secrets: ['JWT_SECRET', 'SESSION_SECRET', 'STORAGE_ENCRYPTION_KEY', 'AUTHELIA_SESSION_REDIS_PASSWORD']
+    environment:
+      TZ: $TZ                                                                 # Sustituir la zona horaria en el archivo .env
+    # Todas las variables a continuación son solicitadas por el archivo de configuración de Authelia. Se han definido aquí como secretos para evitar escribirlas a simple vista.
+      AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: '/run/secrets/JWT_SECRET'
+      AUTHELIA_SESSION_SECRET_FILE: '/run/secrets/SESSION_SECRET'
+      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: '/run/secrets/STORAGE_ENCRYPTION_KEY'
+      AUTHELIA_SESSION_REDIS_PASSWORD_FILE: '/run/secrets/AUTHELIA_SESSION_REDIS_PASSWORD'
+    volumes:
+      - $DOCKERDIR/authelia/config:/config                                    # Sustituir la ruta en el archivo .env
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.authelia.rule=Host(`auth.$DOMAINNAME`)'          # Sustituir el dominio en el archivo .env
+      - 'traefik.http.routers.authelia.entrypoints=websecure'
+      - 'traefik.http.routers.authelia.tls=true'
+      - 'traefik.http.routers.authelia.tls.certresolver=cloudflare'           # Técnicamente no es necesario
+      - 'traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/authz/forward-auth'
+      - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
+      - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
+
+  #--------------------------------------------------------------------------- Redis
+  redis:
+    image: redis:alpine
+    container_name: auth-redis
+    restart: unless-stopped
+    networks:
+      - proxy
+    expose:
+      - 6379
+    environment:
+      - TZ=$TZ
+    volumes:
+      - $DOCKERDIR/authelia/redis:/data

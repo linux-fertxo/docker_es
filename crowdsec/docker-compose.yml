@@ -1,0 +1,33 @@
+#=============================================================================== REDES
+networks:
+  proxy:
+    name: proxy
+    external: true                                                              # Creada previamente
+
+#=============================================================================== SERVICIOS
+services:
+
+  #----------------------------------------------------------------------------- Crowdsec
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    hostname: crowdsec
+    restart: unless-stopped
+    networks:
+      - proxy
+    ports:
+      - 8080:8080                                                               # Puerto LAPI para los "rebotadores"
+    environment:
+      - GID=${GID-1000}                                                           # Pasamos el grupo del usuario al contenedor
+      - COLLECTIONS='crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/linux crowdsecurity/base-http-scenarios' # Añadir las colecciones pertinentes si usamos los registros comentados abajo
+    volumes:
+    #----------------------------------------------------- Datos del contenedor
+      - $DOCKERDIR/crowdsec/data:/var/lib/crowdsec/data                         # No es necesario un bind-mount, podemos crear un contenedor
+      - $DOCKERDIR/crowdsec/etc:/etc/crowdsec
+      # - $DOCKERDIR/crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml               # **OBSOLETO** Adquisición de archivos log
+      - $DOCKERDIR/crowdsec/acquis.d:/etc/crowdsec/acquis.d                     # Adquisición de archivos log
+    #------------------------------------------ Registros de otros contenedores
+      - $DOCKERDIR/traefik/logs/access.log:/var/log/traefik.log:ro              # Registros de acceso de Traefik
+      # - $DOCKERDIR/nextcloud/data/nextcloud.log:/var/log/nextcloud.log:ro       # Registros de Nextcloud
+      # - $DOCKERDIR/nextcloud/config/log/nginx/access.log:/var/log/nginx.log:ro  # Registros del servidor web de Nextcloud
+      # - $DOCKERDIR/authelia/config/authelia.log:/var/log/authelia.log:ro        # Registros de Authelia

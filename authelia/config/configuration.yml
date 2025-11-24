@@ -1,0 +1,117 @@
+---
+###############################################################
+#                   Authelia configuration                    #
+###############################################################
+
+server:
+#  host: 0.0.0.0                                                              # Host y Port están obsoletos. Los he dejado por si consultáis otras guías más antiguas.
+#  port: 9091
+  address: "tcp://:9091"                                                      # Esta es la forma actual. [<scheme>://][hostname]:<port>[/<path>]
+log:
+  level: info
+  format: json
+  file_path: '/config/authelia.log'
+theme: dark
+# Este secreto lo hemos definido en docker-compose.yml como AUTHELIA_JWT_SECRET_FILE
+# jwt_secret: 1234567890abcdefghifjkl
+# default_redirection_url: https://auth.ejemplo.com
+totp:
+  issuer: authelia.com
+
+# duo_api:
+#  hostname: api-123456789.example.com
+#  integration_key: ABCDEF
+# # Este secreto se puede definir en docker-compose.yml como AUTHELIA_DUO_API_SECRET_KEY_FILE
+#  secret_key: 1234567890abcdefghifjkl
+
+authentication_backend:                                                       # Configuración de la base de datos de usuario y algoritmo de encriptación utilizado.
+  file:
+    path: '/config/users_database.yml'
+    password:
+      algorithm: argon2
+      argon2:
+        variant: argon2id
+        iterations: 3
+        memory: 65536
+        parallelism: 4
+        key_length: 32
+        salt_length: 16
+
+access_control:
+  default_policy: deny
+  networks:                                                                   # Definimos las redes internas con un nombre para luego utilizarlas en las reglas.
+    - name: 'internal'
+      networks:
+        - '172.16.0.0/12'
+    - name: 'vpn'
+      networks:
+        - '10.0.0.0/8'
+  rules:
+    - domain: 'ejemplo.com'                                                   # Aquí permite el acceso al dominio base a todo el mundo. (Sitio web público, por ejemplo)
+      policy: bypass
+
+    - domain: 'ejemplo.com'                                                   # Ejemplo de acceso a un recurso
+      resources:
+        - '^/api([/?].*)?$'                                                   # El recurso empieza por "/api", "/api/" o "/api?"
+      policy: bypass                                                          # Permite el acceso a "ejemplo.com/api" o las otras opciones de arriba.
+
+    - domain: '*.ejemplo.com'                                                 # Aquí indicamos que si se intenta acceder a los subdominios desde una de las redes
+      networks:                                                               # definidas anteriormente, tan sólo pida contraseña.
+        - 'internal'
+        - 'vpn'
+      policy: one_factor
+
+    - domain: '*.ejemplo.com'                                                 # Para el resto, pide contraseña y código de autenticación.
+      policy: two_factor
+
+    - domain: 'ejemplo.com'                                                   # Aquí un ejemplo para aplicaciones o recursos que no tienen subdominio propio.
+      resources:
+        - '^/admin.*$'                                                        # Pedirá 2FA si intentamos acceder a "ejemplo.com/admin".
+      policy: two_factor
+
+
+session:
+  name: authelia_session
+  # Este secreto lo hemos definido en docker-compose.yml como AUTHELIA_SESSION_SECRET_FILE
+  # secret: unsecure_session_secret
+  same_site: lax
+  expiration: 1h                                                              # Duración de la sesión, o cuanto dura nuestra autentificación.
+  inactivity: 5m                                                              # Periodo de inactividad por el que cerrará la sesión.
+  remember_me: 1M                                                             # Duración de la sesión al permitir recordar contraseña.
+  cookies:
+    - domain: ejemplo.com                                                     # Debe coincidir con el dominio raíz que queremos proteger.
+      authelia_url: 'https://auth.ejemplo.com'
+      default_redirection_url: 'https://auth.ejemplo.com/settings'             # Sin especificar un subdominio o path, al autenticarse nos manda aquí por defecto.
+#      name: authelia_session
+#      same_site: lax
+#      inactivity: 5m
+#      expiration: 1h
+      remember_me: 1d
+  redis:
+    host: redis
+    port: 6379
+    # Este secreto lo hemos definido en docker-compose.yml como AUTHELIA_SESSION_REDIS_PASSWORD_FILE
+    # password: authelia
+
+regulation:                                                                   # Aquí se definen las políticas de intentos fallidos.
+  max_retries: 3                                                              # Número máximo de intentos fallidos antes de bloquearse.
+  find_time: 120                                                              # Periodo de tiempo en el que se registran los intentos fallidos.
+  ban_time: 300                                                               # Tiempo de baneo.
+
+storage:
+  # Este secreto lo hemos definido en docker-compose.yml como AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE
+  # encryption_key: a_very_important_secret # Now required
+  local:
+    path: '/config/db.sqlite3'
+
+notifier:                                                                     # Por simplicidad solo hemos configurado notificación por archivo local.
+  # smtp:
+  #   username: test
+  #   # Este secreto se puede definir en docker-compose.yml como AUTHELIA_DUO_API_SECRET_KEY_FILE
+  #   password: password
+  #   host: mail.example.com
+  #   port: 25
+  #   sender: admin@example.com
+  filesystem:
+    filename: '/config/notification.txt'
+...

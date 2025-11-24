@@ -1,0 +1,38 @@
+#============================================================================= REDES
+networks:
+  dashy:
+    name: dashy
+
+#============================================================================= SERVICIOS
+services:
+
+  #--------------------------------------------------------------------------- Traefik 3 - Proxy inverso
+  dashy:
+    image: lissy93/dashy:latest
+    container_name: dashy
+    hostname: dashy
+    restart: unless-stopped
+    networks:
+      - dashy
+    ports:
+      - 4000:8080
+    environment:
+      - NODE_ENV=production
+    #------------------------------------------------------ Especificar ID de usuario y grupo (ejecutar `id usuario` para averigüarlos).
+      - UID=$UID
+      - GID=$GID
+    # volumes:
+    #------------------------------------------------------ Sección de certificados (opcional).
+      # - $ACME_PATH/ejemplo.cer:/etc/ssl/certs/dashy-pub.pem:ro
+      # - $ACME_PATH/ejemplo.key:/etc/ssl/certs/dashy-priv.key:ro
+    #------------------------------------------------------ Configuración de Dashy y carpetas con assests.
+      # - $DOCKERDIR/dashy/dashy.yml:/app/user-data/conf.yml               # El archivo de configuración, se creará durante el primer arranque (opcional).
+      # - $DOCKERDIR/dashy/icons:/app/public/item-icons/                   # Si queremos usar iconos personalizados (opcional).
+      # - $DOCKERDIR/dashy/fonts:/app/public/fonts/                        # Si queremos usar fuentes personalizadas (opcional).
+    #------------------------------------------------------ Configuración del chequeo de salud (opcional).
+    healthcheck:
+      test: ['CMD-SHELL', 'yarn health-check']
+      interval: 5m
+      retries: 3
+      start_period: 1m
+      timeout: 30s

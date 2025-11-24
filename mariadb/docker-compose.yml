@@ -1,0 +1,30 @@
+networks:
+  mariadb:
+    name: mariadb
+
+services:
+  mariadb:
+    image: mariadb:11.5.2
+    container_name: mariadb
+    hostname: mariadb
+    restart: unless-stopped
+    networks:
+      - mariadb
+    ports:
+      - 3306:3306
+    environment:
+      MARIADB_ROOT_PASSWORD: $MARIADB_ROOT_PASSWORD
+    volumes:
+      - $DOCKERDIR/mariadb/data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: phpmyadmin
+    hostname: phpmyadmin
+    restart: unless-stopped
+    networks:
+      - mariadb
+    ports:
+      - 7080:80
+    environment:
+      - PMA_ARBITRARY=1

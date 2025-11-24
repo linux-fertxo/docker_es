@@ -1,0 +1,57 @@
+#=========================================== REDES
+networks:
+  socket_proxy:
+    name: socket_proxy
+
+#=========================================== SERVICIOS
+services:
+#------------------------------------------- Socket Proxy
+  socket-proxy:
+    container_name: socket-proxy
+    hostname: socket-proxy
+    image: ghcr.io/tecnativa/docker-socket-proxy:latest
+    restart: always
+    networks:
+      - socket_proxy
+    privileged: true                         # Necesario
+    ports:
+      - 127.0.0.1:2375:2375                  # Este puerto debe ser únicamente expuesto a la red interna
+    ## Se puede usar esta otra línea, por ejemplo para manejar múltiples endpoints de docker dentro de una red local
+#      - "2375:2375"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - $DOCKERDIR/socket-proxy/haproxy.cfg.template:/usr/local/etc/haproxy/haproxy.cfg.template
+    environment:
+      - DISABLE_IPV6=1
+      - LOG_LEVEL=info                       # debug,info,notice,warning,err,crit,alert,emerg (de menor a mayor importancia)
+
+      # Las variables coinciden con el path de la URL (p.e. AUTH bloquea acceso a todo /auth/* como partes del API, etc)
+      # 0 para prohibir acceso
+      # 1 para autorizarlo
+      #====================================== Autorizados por defecto
+      - EVENTS=1
+      - PING=1
+      - VERSION=1
+      #====================================== Prohibidos por defecto
+      #-------------------- Seguridad crítica
+      - AUTH=0
+      - SECRETS=0
+      - POST=0
+      #--------- Necesarios dependiendo el servicio
+      - BUILD=0
+      - COMMIT=0
+      - CONFIGS=0
+      - CONTAINERS=1      # Traefik, portainer, etc.
+      - DISTRIBUTION=0
+      - EXEC=0
+      - IMAGES=1          # Portainer
+      - INFO=1            # Portainer
+      - NETWORKS=1        # Portainer
+      - NODES=0
+      - PLUGINS=0
+      - SERVICES=1        # Portainer
+      - SESSION=0
+      - SWARM=0
+      - SYSTEM=0
+      - TASKS=1           # Portainer
+      - VOLUMES=1         # Portainer
